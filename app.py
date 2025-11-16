@@ -39,7 +39,7 @@ except Exception:
 st.markdown(
     """
     <style>
-    h1, {
+    h1, h2, h3{
         text-align: center !important;
     }
     </style>
