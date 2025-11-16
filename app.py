@@ -41,28 +41,37 @@ model, scaler, features = load_artifacts()
 # SECCIÓN 1 - CARGA ARCHIVO
 # =========================
 st.subheader("1️⃣ Cargar archivo Excel")
-uploaded_file = st.file_uploader("Subir archivo (.xlsx) con los pacientes de UCI", type=["xlsx"])
+uploaded_file = st.file_uploader(
+    "Subir archivo (.xlsx) con los pacientes de UCI", 
+    type=["xlsx"]
+)
 
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
 
+    # Verificar que estén todas las columnas necesarias
     missing = [c for c in features if c not in df.columns]
     if missing:
         st.error(f"Faltan estas columnas necesarias para el modelo: {missing}")
-
     else:
         st.subheader("2️⃣ Predicción de riesgo de glosa")
 
+        # Ordenar columnas como las espera el modelo
         X = df[features]
+
+        # Escalar características
         X_scaled = scaler.transform(X)
 
+        # Predicción de probabilidad y clase
         probas = model.predict_proba(X_scaled)[:, 1]
-        preds = (probas >= 0.5).astype(int)
+        preds = (probas >= 0.5).astype(int)  # umbral 0.5
 
+        # Construir DataFrame de salida
         df_result = df.copy()
-        df_result["prob_glosa"] = probabilidad
-        df_result["pred_glosa"] = predicción
+        df_result["prob_glosa"] = probas
+        df_result["pred_glosa"] = preds
 
+        # Generar archivo para descarga
         buffer = BytesIO()
         df_result.to_excel(buffer, index=False)
         buffer.seek(0)
@@ -74,6 +83,5 @@ if uploaded_file is not None:
             file_name="predicciones_glosas_uci.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
 else:
     st.info("Por favor, cargue un archivo Excel para continuar.")
