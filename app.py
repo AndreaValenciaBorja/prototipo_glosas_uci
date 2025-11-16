@@ -45,7 +45,6 @@ uploaded_file = st.file_uploader("Subir archivo (.xlsx) con los pacientes de UCI
 
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
-    st.write("Vista previa de los datos cargados:")
 
     missing = [c for c in features if c not in df.columns]
     if missing:
@@ -61,10 +60,8 @@ if uploaded_file is not None:
         preds = (probas >= 0.5).astype(int)
 
         df_result = df.copy()
-        df_result["prob_glosa"] = probas
-        df_result["pred_glosa"] = preds
-
-        st.write("Tabla con las predicciones (primeras filas):")
+        df_result["prob_glosa"] = probabilidad
+        df_result["pred_glosa"] = predicción
 
         buffer = BytesIO()
         df_result.to_excel(buffer, index=False)
