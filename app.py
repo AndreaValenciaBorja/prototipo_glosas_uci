@@ -10,71 +10,58 @@ from PIL import Image
 # =========================
 st.set_page_config(
     page_title="Predicción de Glosas en UCI - FVL",
-    page_icon="🩺",
-    layout="wide",
+    layout="centered",
 )
 
 # =========================
-# ESTILOS (COLORES FVL)
+# ESTILOS (TEMA FVL SIMPLE)
 # =========================
 st.markdown(
     """
     <style>
-    /* Fondo general en tono beige */
+    /* Fondo blanco en toda la app */
     [data-testid="stAppViewContainer"] {
-        background-color: #F5F2EA;
+        background-color: #FFFFFF;
     }
 
-    /* Contenedor central más angosto y limpio */
+    /* Barra superior verde tipo Fundación Valle del Lili */
+    [data-testid="stHeader"] {
+        background-color: #005F3B;
+    }
+
+    /* Contenedor central un poco más angosto */
     .block-container {
         padding-top: 1.5rem;
         padding-bottom: 2rem;
-        max-width: 1200px;
+        max-width: 1100px;
     }
 
-    /* Botones tipo FVL (verde vivo y redondeados) */
+    /* Botones verdes redondeados (estilo institucional) */
     .stButton > button {
         background-color: #69BE28;
         color: white;
         border-radius: 999px;
         border: none;
-        padding: 0.5rem 1.5rem;
+        padding: 0.4rem 1.3rem;
         font-weight: 600;
     }
     .stButton > button:hover {
         background-color: #4E9B1E;
     }
 
-    /* Títulos estilo FVL */
+    /* Título principal */
     .fvl-title {
-        font-size: 28px;
-        font-weight: 700;
-        color: #005F3B;
-        margin-bottom: 0.2rem;
-    }
-    .fvl-subtitle {
-        font-size: 15px;
-        color: #555555;
-        margin-top: 0.1rem;
-    }
-
-    /* Tarjetas de información tipo métricas */
-    .fvl-card {
-        background-color: white;
-        border-radius: 16px;
-        padding: 1rem 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        text-align: center;
-    }
-    .fvl-card-number {
         font-size: 24px;
         font-weight: 700;
-        color: #007A3D;
-        margin-bottom: 0.2rem;
+        color: #005F3B;
+        margin-bottom: 0.1rem;
     }
-    .fvl-card-label {
-        font-size: 13px;
+
+    /* Subtítulo pequeño debajo del título */
+    .fvl-subtitle {
+        font-size: 14px;
         color: #666666;
+        margin-top: 0.1rem;
     }
     </style>
     """,
@@ -95,15 +82,17 @@ def load_artifacts():
 model, scaler, features = load_artifacts()
 
 # =========================
-# ENCABEZADO TIPO FVL
+# ENCABEZADO SIMPLE CON LOGO
 # =========================
+from PIL import Image
+
 with st.container():
-    col_logo, col_text = st.columns([1, 3])
+    col_logo, col_text = st.columns([1, 4])
 
     with col_logo:
         try:
-            logo = Image.open("logo_fvl.png")
-            st.image(logo, use_column_width=True)
+            logo = Image.open("logo_fvl.png")   # archivo en tu repositorio
+            st.image(logo, width=160)
         except Exception:
             st.write("")  # si no encuentra el logo, no rompe
 
@@ -113,29 +102,11 @@ with st.container():
             unsafe_allow_html=True
         )
         st.markdown(
-            '<p class="fvl-subtitle">Prototipo de apoyo a la auditoría médica en la Fundación Valle del Lili</p>',
+            '<p class="fvl-subtitle">Prototipo de apoyo a la auditoría médica de la Fundación Valle del Lili</p>',
             unsafe_allow_html=True
         )
 
 st.markdown("---")
-
-# =========================
-# BARRA LATERAL (UMBRAL)
-# =========================
-st.sidebar.header("Configuración del modelo")
-umbral = st.sidebar.slider(
-    "Umbral de clasificación de glosa",
-    min_value=0.10,
-    max_value=0.90,
-    value=0.50,
-    step=0.05,
-    help="Valores por encima del umbral se clasifican como 'Glosa'."
-)
-
-st.sidebar.info(
-    f"Con el umbral actual ({umbral:.2f}), los casos con probabilidad "
-    "igual o superior se marcarán como Glosa (1)."
-)
 
 # =========================
 # TARJETAS RESUMEN (PLACEHOLDER)
