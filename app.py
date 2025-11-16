@@ -3,89 +3,33 @@ import pandas as pd
 import joblib
 import json
 from io import BytesIO
-from PIL import Image
+from PIL import Image  
 
 # =========================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN INICIAL
 # =========================
-st.set_page_config(
-    page_title="Predicción de Glosas en UCI - FVL",
-    page_icon="logo_fvl.png",  # ← usa el logo en la pestaña del navegador
-    layout="centered",
-)
+st.set_page_config(page_title="Predicción de Glosas en UCI")
 
 # =========================
-# ESTILOS (TEMA FVL SIMPLE)
+# LOGO FUNDACIÓN
 # =========================
-st.markdown(
-    """
-    <style>
-    /* Fondo blanco en toda la app */
-    [data-testid="stAppViewContainer"] {
-        background-color: #FFFFFF;
-    }
-
-    /* Barra superior verde tipo Fundación Valle del Lili */
-    [data-testid="stHeader"] {
-        background-color: #005F3B;
-        color: transparent;      /* oculta texto del header */
-    }
-
-    /* Contenedor central */
-    .block-container {
-        padding-top: 2.5rem;     /* baja el contenido para que no se tape con la franja */
-        padding-bottom: 2rem;
-        max-width: 1100px;
-    }
-
-    /* Botones verdes redondeados (estilo institucional) */
-    .stButton > button {
-        background-color: #69BE28;
-        color: white;
-        border-radius: 999px;
-        border: none;
-        padding: 0.4rem 1.3rem;
-        font-weight: 600;
-    }
-    .stButton > button:hover {
-        background-color: #4E9B1E;
-    }
-
-    /* Título principal */
-    .fvl-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #005F3B;
-        margin-bottom: 0.1rem;
-    }
-
-    /* Subtítulo pequeño debajo del título */
-    .fvl-subtitle {
-        font-size: 14px;
-        color: #666666;
-        margin-top: 0.1rem;
-    }
-
-    /* Caja simple para textos de resumen */
-    .fvl-card {
-        background-color: #FFFFFF;
-        border-radius: 12px;
-        padding: 0.8rem 1.0rem;
-        border: 1px solid #E0E0E0;
-        font-size: 13px;
-        color: #444444;
-    }
-    .fvl-card-label {
-        font-size: 13px;
-        color: #444444;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+try:
+    logo = Image.open("logo_fvl.png")  
+    st.image(logo, width=180)           
+except:
+    st.write(" ")  # si no encuentra el logo, no se rompe
 
 # =========================
-# CARGAR ARTEFACTOS DEL MODELO
+# TÍTULO Y DESCRIPCIÓN
+# =========================
+st.title("Prototipo: Predicción de glosas por estancia no pertinente en UCI")
+st.write("""
+Esta herramienta recibe un archivo Excel con pacientes de UCI y 
+devuelve un archivo con la probabilidad estimada de glosa por pertinencia de estancia.
+""")
+
+# =========================
+# CARGA DE MODELO & SCALER
 # =========================
 @st.cache_resource
 def load_artifacts():
@@ -97,113 +41,37 @@ def load_artifacts():
 
 model, scaler, features = load_artifacts()
 
-# UMBRAL FIJO (puedes cambiarlo más adelante por un slider si quieres)
-umbral = 0.5
-
 # =========================
-# ENCABEZADO SIMPLE CON LOGO
+# SECCIÓN 1 - CARGA ARCHIVO
 # =========================
-with st.container():
-    col_logo, col_text = st.columns([1, 4])
-
-    with col_logo:
-        try:
-            logo = Image.open("logo_fvl.png")
-            st.image(logo, width=160)
-        except Exception:
-            st.write("")  # si no encuentra el logo, no rompe
-
-    with col_text:
-        st.markdown(
-            '<p class="fvl-title">Predicción de glosas por estancia no pertinente en UCI</p>',
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            '<p class="fvl-subtitle">Prototipo de apoyo a la auditoría médica de la Fundación Valle del Lili</p>',
-            unsafe_allow_html=True
-        )
-
-st.markdown("---")
-
-# =========================
-# TARJETAS RESUMEN (SENCILLAS)
-# =========================
-with st.container():
-    c1, c2 = st.columns(2)   # ← 2 columnas, 2 variables
-    with c1:
-        st.markdown(
-            '<div class="fvl-card">'
-            '<div class="fvl-card-label">Servicio objetivo del modelo: UCI Adultos</div>'
-            '</div>',
-            unsafe_allow_html=True
-        )
-    with c2:
-        st.markdown(
-            '<div class="fvl-card">'
-            '<div class="fvl-card-label">Periodo de datos analizados: 2022–2024</div>'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-st.markdown("")
-
-# =========================
-# SECCIÓN PRINCIPAL: CARGA Y PREDICCIÓN
-# =========================
-st.subheader("1️⃣ Cargar archivo de pacientes de UCI")
-
-st.write(
-    "Suba un archivo Excel con las variables clínicas y administrativas requeridas "
-    "para cada episodio de UCI."
-)
-
-uploaded_file = st.file_uploader(
-    "Subir archivo (.xlsx)",
-    type=["xlsx"],
-    help="Use el archivo de ejemplo generado desde SAP o desde el notebook."
-)
+st.subheader("1️⃣ Cargar archivo Excel")
+uploaded_file = st.file_uploader("Subir archivo (.xlsx) con los pacientes de UCI", type=["xlsx"])
 
 if uploaded_file is not None:
-    # Leer archivo
     df = pd.read_excel(uploaded_file)
     st.write("Vista previa de los datos cargados:")
     st.dataframe(df.head())
 
-    # Verificar columnas requeridas
     missing = [c for c in features if c not in df.columns]
     if missing:
-        st.error(
-            "Faltan columnas necesarias para el modelo:\n\n"
-            + ", ".join(missing)
-        )
+        st.error(f"Faltan estas columnas necesarias para el modelo: {missing}")
+
     else:
         st.subheader("2️⃣ Predicción de riesgo de glosa")
 
-        # Ordenar columnas como las espera el modelo
         X = df[features]
-
-        # Escalado
         X_scaled = scaler.transform(X)
 
-        # Probabilidades y predicciones según umbral
         probas = model.predict_proba(X_scaled)[:, 1]
-        preds = (probas >= umbral).astype(int)
+        preds = (probas >= 0.5).astype(int)
 
-        # Construir DataFrame de salida
         df_result = df.copy()
-        df_result["prob_glosa"] = probas        # ← variable correcta
-        df_result["pred_glosa"] = preds         # ← variable correcta
-
-        # Resumen numérico
-        n_total = len(df_result)
-        n_glosa = int((df_result["pred_glosa"] == 1).sum())
-        st.write(f"**Total de registros procesados:** {n_total}")
-        st.write(f"**Casos clasificados como glosa (1):** {n_glosa} ({n_glosa/n_total:.1%})")
+        df_result["prob_glosa"] = probas
+        df_result["pred_glosa"] = preds
 
         st.write("Tabla con las predicciones (primeras filas):")
         st.dataframe(df_result.head())
 
-        # Preparar archivo para descarga
         buffer = BytesIO()
         df_result.to_excel(buffer, index=False)
         buffer.seek(0)
@@ -215,5 +83,6 @@ if uploaded_file is not None:
             file_name="predicciones_glosas_uci.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
 else:
     st.info("Por favor, cargue un archivo Excel para continuar.")
