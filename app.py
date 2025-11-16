@@ -9,7 +9,7 @@ from PIL import Image
 # CONFIGURACIÓN GENERAL
 # =========================
 st.set_page_config(
-    page_title="Predicción de Glosas en UCI - FVL",
+    page_title="Predicción de Glosas en UCI",
     layout="centered",
 )
 
@@ -91,10 +91,10 @@ with st.container():
 
     with col_logo:
         try:
-            logo = Image.open("logo_fvl.png")   # archivo en tu repositorio
+            logo = Image.open("logo_fvl.png") 
             st.image(logo, width=160)
         except Exception:
-            st.write("")  # si no encuentra el logo, no rompe
+            st.write("")  
 
     with col_text:
         st.markdown(
@@ -112,28 +112,18 @@ st.markdown("---")
 # TARJETAS RESUMEN (PLACEHOLDER)
 # =========================
 with st.container():
-    c1, c2, c3 = st.columns(3)
+    c1, c2 = st.columns(3)
     with c1:
         st.markdown(
             '<div class="fvl-card">'
-            '<div class="fvl-card-number">UCI Adultos</div>'
-            '<div class="fvl-card-label">Servicio objetivo del modelo</div>'
+            '<div class="fvl-card-label">Servicio objetivo del modelo: UCI Adultos</div>'
             '</div>',
             unsafe_allow_html=True
         )
     with c2:
         st.markdown(
             '<div class="fvl-card">'
-            '<div class="fvl-card-number">2022–2024</div>'
-            '<div class="fvl-card-label">Periodo de datos analizados</div>'
-            '</div>',
-            unsafe_allow_html=True
-        )
-    with c3:
-        st.markdown(
-            '<div class="fvl-card">'
-            '<div class="fvl-card-number">Random Forest</div>'
-            '<div class="fvl-card-label">Modelo seleccionado para el prototipo</div>'
+            '<div class="fvl-card-label">Periodo de datos analizados 2022 - 2024</div>'
             '</div>',
             unsafe_allow_html=True
         )
@@ -147,8 +137,6 @@ st.subheader("1️⃣ Cargar archivo de pacientes de UCI")
 
 st.write(
     "Suba un archivo Excel con las variables clínicas y administrativas requeridas "
-    "para cada episodio de UCI. El sistema aplicará el escalado y el modelo entrenado "
-    "para estimar la probabilidad de glosa por pertinencia de estancia."
 )
 
 uploaded_file = st.file_uploader(
@@ -194,7 +182,7 @@ if uploaded_file is not None:
         st.write(f"**Total de registros procesados:** {n_total}")
         st.write(f"**Casos clasificados como glosa (1):** {n_glosa} ({n_glosa/n_total:.1%})")
 
-        st.write("Tabla con las predicciones (primeras filas):")
+        st.write("Tabla con las predicciones:")
         st.dataframe(df_result.head())
 
         # Preparar archivo para descarga
