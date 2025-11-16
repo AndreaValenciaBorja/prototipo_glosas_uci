@@ -3,7 +3,8 @@ import pandas as pd
 import joblib
 import json
 from io import BytesIO
-from PIL import Image  
+from PIL import Image
+import base64
 
 # =========================
 # CONFIGURACIÓN INICIAL
@@ -11,11 +12,8 @@ from PIL import Image
 st.set_page_config(page_title="Predicción de Glosas en UCI")
 
 # =========================
-# LOGO FUNDACIÓN
+# FUNCIÓN PARA CENTRAR IMAGEN (LOGO)
 # =========================
-from PIL import Image
-import base64
-
 def center_image(path, width=180):
     with open(path, "rb") as f:
         img_bytes = f.read()
@@ -29,24 +27,27 @@ def center_image(path, width=180):
         unsafe_allow_html=True
     )
 
-# ---- USO ----
+# Mostrar logo centrado (si existe)
 try:
     center_image("logo_fvl.png", width=180)
-except:
+except Exception:
     st.write("")
 
+# =========================
+# TÍTULO Y ESTILO DE TÍTULOS
+# =========================
+st.markdown(
+    """
+    <style>
+    h1, h2, h3 {
+        text-align: center !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-# =========================
-# TÍTULO Y DESCRIPCIÓN
-# =========================
 st.title("Predicción de glosas por estancia no pertinente en UCI")
-st.markdown("""
-<style>
-h1, h2, h3 {
-    text-align: center !important;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # =========================
 # CARGA DE MODELO & SCALER
@@ -66,7 +67,7 @@ model, scaler, features = load_artifacts()
 # =========================
 st.subheader("🗂️ Cargar archivo Excel")
 uploaded_file = st.file_uploader(
-    "Subir archivo (.xlsx) con los pacientes de UCI", 
+    "Subir archivo (.xlsx) con los pacientes de UCI",
     type=["xlsx"]
 )
 
@@ -78,7 +79,7 @@ if uploaded_file is not None:
     if missing:
         st.error(f"Faltan estas columnas necesarias para el modelo: {missing}")
     else:
-        st.info("Predicción de riesgo de glosa")
+        st.info("Predicción de riesgo de glosa en curso...")
 
         # Ordenar columnas como las espera el modelo
         X = df[features]
@@ -100,16 +101,27 @@ if uploaded_file is not None:
         df_result.to_excel(buffer, index=False)
         buffer.seek(0)
 
+        # =========================
+        # SECCIÓN 2 - DESCARGA
+        # =========================
         st.subheader("📥 Descargar resultados")
+
+        # Centrar el botón de descarga
+        st.markdown(
+            "<div style='display:flex; justify-content:center;'>",
+            unsafe_allow_html=True
+        )
+
         st.download_button(
             label="Descargar Excel con predicciones",
             data=buffer,
             file_name="predicciones_glosas_uci.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        st.markdown("""
-<style>
-h1, h2, h3 {
-    text-align: center !important;
+        )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
         )
 else:
     st.info("Por favor, cargue un archivo Excel para continuar.")
