@@ -9,7 +9,8 @@ from PIL import Image
 # CONFIGURACIÓN GENERAL
 # =========================
 st.set_page_config(
-    page_title="Predicción de Glosas en UCI",
+    page_title="Predicción de Glosas en UCI - FVL",
+    page_icon="logo_fvl.png",  # ← usa el logo en la pestaña del navegador
     layout="centered",
 )
 
@@ -27,11 +28,12 @@ st.markdown(
     /* Barra superior verde tipo Fundación Valle del Lili */
     [data-testid="stHeader"] {
         background-color: #005F3B;
+        color: transparent;      /* oculta texto del header */
     }
 
-    /* Contenedor central un poco más angosto */
+    /* Contenedor central */
     .block-container {
-        padding-top: 1.5rem;
+        padding-top: 2.5rem;     /* baja el contenido para que no se tape con la franja */
         padding-bottom: 2rem;
         max-width: 1100px;
     }
@@ -63,6 +65,20 @@ st.markdown(
         color: #666666;
         margin-top: 0.1rem;
     }
+
+    /* Caja simple para textos de resumen */
+    .fvl-card {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        padding: 0.8rem 1.0rem;
+        border: 1px solid #E0E0E0;
+        font-size: 13px;
+        color: #444444;
+    }
+    .fvl-card-label {
+        font-size: 13px;
+        color: #444444;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -81,20 +97,21 @@ def load_artifacts():
 
 model, scaler, features = load_artifacts()
 
+# UMBRAL FIJO (puedes cambiarlo más adelante por un slider si quieres)
+umbral = 0.5
+
 # =========================
 # ENCABEZADO SIMPLE CON LOGO
 # =========================
-from PIL import Image
-
 with st.container():
     col_logo, col_text = st.columns([1, 4])
 
     with col_logo:
         try:
-            logo = Image.open("logo_fvl.png") 
+            logo = Image.open("logo_fvl.png")
             st.image(logo, width=160)
         except Exception:
-            st.write("")  
+            st.write("")  # si no encuentra el logo, no rompe
 
     with col_text:
         st.markdown(
@@ -109,10 +126,10 @@ with st.container():
 st.markdown("---")
 
 # =========================
-# TARJETAS RESUMEN (PLACEHOLDER)
+# TARJETAS RESUMEN (SENCILLAS)
 # =========================
 with st.container():
-    c1, c2 = st.columns(3)
+    c1, c2 = st.columns(2)   # ← 2 columnas, 2 variables
     with c1:
         st.markdown(
             '<div class="fvl-card">'
@@ -123,7 +140,7 @@ with st.container():
     with c2:
         st.markdown(
             '<div class="fvl-card">'
-            '<div class="fvl-card-label">Periodo de datos analizados 2022 - 2024</div>'
+            '<div class="fvl-card-label">Periodo de datos analizados: 2022–2024</div>'
             '</div>',
             unsafe_allow_html=True
         )
@@ -137,11 +154,12 @@ st.subheader("1️⃣ Cargar archivo de pacientes de UCI")
 
 st.write(
     "Suba un archivo Excel con las variables clínicas y administrativas requeridas "
+    "para cada episodio de UCI."
 )
 
 uploaded_file = st.file_uploader(
-    "Subir archivo (.xlsx)", 
-    type=["xlsx"], 
+    "Subir archivo (.xlsx)",
+    type=["xlsx"],
     help="Use el archivo de ejemplo generado desde SAP o desde el notebook."
 )
 
@@ -173,8 +191,8 @@ if uploaded_file is not None:
 
         # Construir DataFrame de salida
         df_result = df.copy()
-        df_result["prob_glosa"] = probabilidad
-        df_result["pred_glosa"] = predicción
+        df_result["prob_glosa"] = probas        # ← variable correcta
+        df_result["pred_glosa"] = preds         # ← variable correcta
 
         # Resumen numérico
         n_total = len(df_result)
@@ -182,7 +200,7 @@ if uploaded_file is not None:
         st.write(f"**Total de registros procesados:** {n_total}")
         st.write(f"**Casos clasificados como glosa (1):** {n_glosa} ({n_glosa/n_total:.1%})")
 
-        st.write("Tabla con las predicciones:")
+        st.write("Tabla con las predicciones (primeras filas):")
         st.dataframe(df_result.head())
 
         # Preparar archivo para descarga
