@@ -76,7 +76,7 @@ if uploaded_file is not None:
 
         st.subheader("📥 Descargar resultados")
         st.download_button(
-            label="📥 Descargar Excel con predicciones",
+            label="Descargar Excel con predicciones",
             data=buffer,
             file_name="predicciones_glosas_uci.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
