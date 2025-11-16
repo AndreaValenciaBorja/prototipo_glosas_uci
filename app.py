@@ -54,7 +54,7 @@ if uploaded_file is not None:
     if missing:
         st.error(f"Faltan estas columnas necesarias para el modelo: {missing}")
     else:
-        st.subheader("2️⃣ Predicción de riesgo de glosa")
+        st.info("Predicción de riesgo de glosa")
 
         # Ordenar columnas como las espera el modelo
         X = df[features]
