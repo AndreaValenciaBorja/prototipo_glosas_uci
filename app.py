@@ -13,16 +13,40 @@ st.set_page_config(page_title="Predicción de Glosas en UCI")
 # =========================
 # LOGO FUNDACIÓN
 # =========================
+from PIL import Image
+import base64
+
+def center_image(path, width=180):
+    with open(path, "rb") as f:
+        img_bytes = f.read()
+    img_base64 = base64.b64encode(img_bytes).decode()
+    st.markdown(
+        f"""
+        <div style="display:flex; justify-content:center; margin-bottom:10px;">
+            <img src="data:image/png;base64,{img_base64}" width="{width}">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# ---- USO ----
 try:
-    logo = Image.open("logo_fvl.png")  
-    st.image(logo, width=180)           
+    center_image("logo_fvl.png", width=180)
 except:
-    st.write(" ")  # si no encuentra el logo, no se rompe
+    st.write("")
+
 
 # =========================
 # TÍTULO Y DESCRIPCIÓN
 # =========================
 st.title("Predicción de glosas por estancia no pertinente en UCI")
+st.markdown("""
+<style>
+h1, h2, h3 {
+    text-align: center !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # =========================
 # CARGA DE MODELO & SCALER
