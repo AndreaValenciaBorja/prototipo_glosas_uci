@@ -106,6 +106,10 @@ if uploaded_file is not None:
             data=buffer,
             file_name="predicciones_glosas_uci.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        st.markdown("""
+<style>
+h1, h2, h3 {
+    text-align: center !important;
         )
 else:
     st.info("Por favor, cargue un archivo Excel para continuar.")
