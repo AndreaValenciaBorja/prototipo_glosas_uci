@@ -40,7 +40,7 @@ model, scaler, features = load_artifacts()
 # =========================
 # SECCIÓN 1 - CARGA ARCHIVO
 # =========================
-st.subheader("1️⃣ Cargar archivo Excel")
+st.subheader("🗂️ Cargar archivo Excel")
 uploaded_file = st.file_uploader(
     "Subir archivo (.xlsx) con los pacientes de UCI", 
     type=["xlsx"]
@@ -53,8 +53,6 @@ if uploaded_file is not None:
     missing = [c for c in features if c not in df.columns]
     if missing:
         st.error(f"Faltan estas columnas necesarias para el modelo: {missing}")
-    else:
-        st.subheader("2️⃣ Predicción de riesgo de glosa")
 
         # Ordenar columnas como las espera el modelo
         X = df[features]
@@ -76,7 +74,7 @@ if uploaded_file is not None:
         df_result.to_excel(buffer, index=False)
         buffer.seek(0)
 
-        st.subheader("3️⃣ Descargar resultados")
+        st.subheader("📥 Descargar resultados")
         st.download_button(
             label="📥 Descargar Excel con predicciones",
             data=buffer,
