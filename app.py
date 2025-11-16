@@ -27,19 +27,19 @@ def center_image(path, width=180):
         unsafe_allow_html=True
     )
 
-# Mostrar logo centrado (si existe)
+# Logo centrado
 try:
     center_image("logo_fvl.png", width=180)
 except Exception:
     st.write("")
 
 # =========================
-# TÍTULO Y ESTILO DE TÍTULOS
+# TÍTULOS CENTRADOS
 # =========================
 st.markdown(
     """
     <style>
-    h1, h2, h3 {
+    h1, {
         text-align: center !important;
     }
     </style>
@@ -72,56 +72,71 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
-    df = pd.read_excel(uploaded_file)
+    try:
+        df = pd.read_excel(uploaded_file)
 
-    # Verificar que estén todas las columnas necesarias
-    missing = [c for c in features if c not in df.columns]
-    if missing:
-        st.error(f"Faltan estas columnas necesarias para el modelo: {missing}")
-    else:
-        st.info("Predicción de riesgo de glosa en curso...")
+        # 1) Verificar columnas
+        missing = [c for c in features if c not in df.columns]
+        if missing:
+            st.error(
+                "Faltan estas columnas necesarias para el modelo:\n\n"
+                + ", ".join(missing)
+            )
+        else:
+            st.info("Predicción de riesgo de glosa en curso...")
 
-        # Ordenar columnas como las espera el modelo
-        X = df[features]
+            # 2) Ordenar columnas como las espera el modelo
+            X = df[features]
 
-        # Escalar características
-        X_scaled = scaler.transform(X)
+            # 3) Escalar
+            X_scaled = scaler.transform(X)
 
-        # Predicción de probabilidad y clase
-        probas = model.predict_proba(X_scaled)[:, 1]
-        preds = (probas >= 0.5).astype(int)  # umbral 0.5
+            # 4) Predicciones
+            probas = model.predict_proba(X_scaled)[:, 1]
+            preds = (probas >= 0.5).astype(int)
 
-        # Construir DataFrame de salida
-        df_result = df.copy()
-        df_result["prob_glosa"] = probas
-        df_result["pred_glosa"] = preds
+            # 5) Construir DataFrame resultado
+            df_result = df.copy()
+            df_result["prob_glosa"] = probas
+            df_result["pred_glosa"] = preds
 
-        # Generar archivo para descarga
-        buffer = BytesIO()
-        df_result.to_excel(buffer, index=False)
-        buffer.seek(0)
+            # Pequeño resumen (opcional)
+            n_total = len(df_result)
+            n_glosa = int((df_result["pred_glosa"] == 1).sum())
+            st.write(f"Total de pacientes procesados: **{n_total}**")
+            st.write(f"Clasificados como glosa: **{n_glosa}** ({n_glosa/n_total:.1%})")
 
-        # =========================
-        # SECCIÓN 2 - DESCARGA
-        # =========================
-        st.subheader("📥 Descargar resultados")
+            # 6) Generar Excel en memoria
+            buffer = BytesIO()
+            df_result.to_excel(buffer, index=False)
+            buffer.seek(0)
 
-        # Centrar el botón de descarga
-        st.markdown(
-            "<div style='display:flex; justify-content:center;'>",
-            unsafe_allow_html=True
-        )
+            # =========================
+            # SECCIÓN 2 - DESCARGA
+            # =========================
+            st.subheader("📥 Descargar resultados")
 
-        st.download_button(
-            label="Descargar Excel con predicciones",
-            data=buffer,
-            file_name="predicciones_glosas_uci.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+            # Centrar botón
+            st.markdown(
+                "<div style='display:flex; justify-content:center;'>",
+                unsafe_allow_html=True
+            )
 
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
+            st.download_button(
+                label="Descargar Excel con predicciones",
+                data=buffer,
+                file_name="predicciones_glosas_uci.xlsx",
+                mime=(
+                    "application/vnd.openxmlformats-"
+                    "officedocument.spreadsheetml.sheet"
+                )
+            )
+
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error("❌ Ocurrió un error al procesar el archivo.")
+        st.exception(e)
+
 else:
     st.info("Por favor, cargue un archivo Excel para continuar.")
