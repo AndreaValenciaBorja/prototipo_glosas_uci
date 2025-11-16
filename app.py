@@ -22,11 +22,7 @@ except:
 # =========================
 # TÍTULO Y DESCRIPCIÓN
 # =========================
-st.title("Prototipo: Predicción de glosas por estancia no pertinente en UCI")
-st.write("""
-Esta herramienta recibe un archivo Excel con pacientes de UCI y 
-devuelve un archivo con la probabilidad estimada de glosa por pertinencia de estancia.
-""")
+st.title("Predicción de glosas por estancia no pertinente en UCI")
 
 # =========================
 # CARGA DE MODELO & SCALER
